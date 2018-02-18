@@ -30,6 +30,7 @@ next_row = next_available_row(sheet)
 
 def write_to_sheet(t):
     global next_row
+    global rowcache
     print("WRITING GOT CALLED")
     number = t[0]
     msgcount = t[1]
@@ -37,15 +38,23 @@ def write_to_sheet(t):
     print("NUMBER,", number, "MSG", msg)
     if msgcount == 1:
         msg = get_closest(msg, keywords.keys())
-        msg = keywords[msg]
+        if msg in keywords:
+            msg = keywords[msg]
     if msgcount == 5 or msgcount == 6:
         msg = get_closest(msg, ['yes','y','no','n'])
-        msg = msg[0]
+        msg = msg[0].lower()
     if number not in rowcache:
-        row = next_row ## NOT THREAD-SAFE; FOR SEQUENTIAL ACCESS
+        print("NUMBER NOT IN ROWCACHE:", number, rowcache)
+        # NOT THREAD-SAFE; FOR SEQUENTIAL ACCESS
+        row = next_row
+        rowcache[number] = row
         next_row += 1
     else:
+        print("NUMBER IN ROWCACHE:", rowcache[number])
         row = rowcache[number]
-    print(row, msgcount, msg)
-    sheet.update_cell(row, msgcount, msg)
+    print("NUMBER:", number, type(number))
+    print("ROWCACHE:", rowcache)
+    print("BOOLEAN:", number in rowcache)
+    sheet.update_cell(row, 1, number)
+    sheet.update_cell(row, msgcount+1, msg)
     return -1

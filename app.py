@@ -51,7 +51,7 @@ def sms():
     session['msgcount'] = msgcount 
 
     ## SET FIRSTNAME COOKIE ##
-    if msgcount == 3:
+    if msgcount == 4:
         firstname = msg.split(" ")[0]
         session['firstname'] = firstname
 
@@ -59,6 +59,5 @@ def sms():
     from utils import write_to_sheet
     res = q.enqueue(write_to_sheet, (number, msgcount, msg))
 
-    print(res)
-    print(number, msgcount, msg)
+    print("LOGGED: ", number, msgcount, msg)
     return str(resp)
