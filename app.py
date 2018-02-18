@@ -4,7 +4,6 @@ from twilio.twiml.messaging_response import MessagingResponse
 import redis
 from rq import Queue
 from worker import conn
-from utils import write_to_sheet
 from datetime import datetime, timedelta
 
 
@@ -18,7 +17,6 @@ q = Queue(connection=conn)
 def sms():
     ## SET EXPIRATION TIME FOR COOKIES ##
     now = datetime.utcnow() # current time, for debugging
-    print("START: ", now)
     expires=now + timedelta(hours=4)
 
     ## GET INCOMING INFO ##
@@ -58,9 +56,9 @@ def sms():
         session['firstname'] = firstname
 
     ## ENQUEUE MESSAGE ##
-    q.enqueue(write_to_sheet, (number, msgcount, msg, now))
+    from utils import write_to_sheet
+    res = q.enqueue(write_to_sheet, (number, msgcount, msg))
 
-    now = datetime.utcnow()
-    print("END: ", now)
-
+    print(res)
+    print(number, msgcount, msg)
     return str(resp)

@@ -3,7 +3,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 from difflib import get_close_matches
 from rq import Queue
-from utils import write_to_sheet
 
 # helper functions
 def next_available_row(worksheet):
@@ -15,7 +14,6 @@ def get_closest(m,l):
     '''returns closest match to string m in list l or "UNKNOWN" if no match is close'''
     closest_kwds = get_close_matches(m.lower(), l)
     return closest_kwds[0] if len(closest_kwds) >=1 else "UNKNOWN" 
-
 
 # load sheet
 scope = ['https://spreadsheets.google.com/feeds']
@@ -31,10 +29,12 @@ rowcache = {}
 next_row = next_available_row(sheet)
 
 def write_to_sheet(t):
+    global next_row
+    print("WRITING GOT CALLED")
     number = t[0]
     msgcount = t[1]
     msg = t[2]
-    now = t[3]
+    print("NUMBER,", number, "MSG", msg)
     if msgcount == 1:
         msg = get_closest(msg, keywords.keys())
         msg = keywords[msg]
@@ -46,4 +46,6 @@ def write_to_sheet(t):
         next_row += 1
     else:
         row = rowcache[number]
+    print(row, msgcount, msg)
     sheet.update_cell(row, msgcount, msg)
+    return -1
