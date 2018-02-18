@@ -7,7 +7,7 @@ from worker import conn
 from datetime import datetime, timedelta
 
 
-SECRET_KEY = 'alwaystrucksoloneverteam'
+SECRET_KEY = 'THIS IS NOT OUR SECRET KEY'
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
@@ -40,7 +40,7 @@ def sms():
         reply = "Fantastic, {}! Are you interested in learning more about Sunrise Semester? (Y/N)".format(name)
     elif msgcount == 5:
         name = session.get('firstname', 'climate champion')
-        reply = "Thanks {}! Looking forward to taking action with you this year. Together, we'll make climate change an urgent priority, get fossil fuel money out of our politics, and elect leaders who will stand up for the health and well-being of all people. Let's shine bright!".format(name)
+        reply = "Thanks, {}! Looking forward to taking action with you this year. Together, we'll make climate change an urgent priority, get fossil fuel money out of our politics, and elect leaders who will stand up for the health and well-being of all people. Let's shine bright!".format(name)
    
     ## SET UP RESPONSE ##
     resp = MessagingResponse()
