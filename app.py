@@ -5,18 +5,36 @@ import redis
 from rq import Queue
 from worker import conn
 from datetime import datetime, timedelta
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 
+## HELPER FUNCTION ## 
+def next_available_row(worksheet):
+    '''returns number of first entry in spreadsheet where the first column is blank'''
+    str_list = list(filter(None, worksheet.col_values(1)))
+    number_dict = dict([(v,i) for i,v in enumerate(str_list)]) 
+    return (len(str_list)+1, number_dict)
 
-SECRET_KEY = 'THIS IS NOT OUR SECRET KEY'
+## LOAD THE SPREADSHEET ## 
+scope = ['https://spreadsheets.google.com/feeds']
+creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+sheetclient = gspread.authorize(creds)
+sheet = sheetclient.open("TextingSignups").sheet1
+
+SECRET_KEY = 'put_your_secret_key_here'
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
 q = Queue(connection=conn)
 
+next_row, rowcache = next_available_row(sheet)
+print("THIS IS HAPPENING")
+
 @app.route("/", methods=['GET', 'POST'])
 def sms():
     ## SET EXPIRATION TIME FOR COOKIES ##
     now = datetime.utcnow() # current time, for debugging
+    print("START: ", now)
     expires=now + timedelta(hours=4)
 
     ## GET INCOMING INFO ##
@@ -55,9 +73,19 @@ def sms():
         firstname = msg.split(" ")[0]
         session['firstname'] = firstname
 
+    ## GET ROW ##
+    global next_row
+    global rowcache
+    if number not in rowcache:
+        row = next_row
+        rowcache[number] = row
+        next_row += 1
+    else:
+        row = rowcache[number]
+    print("LOGGED: ", number, msgcount, msg, row)
+    
     ## ENQUEUE MESSAGE ##
     from utils import write_to_sheet
-    res = q.enqueue(write_to_sheet, (number, msgcount, msg))
-
-    print("LOGGED: ", number, msgcount, msg)
+    res = q.enqueue(write_to_sheet, (number, msgcount, msg, row))
+    print("END TIME: ", datetime.utcnow()) 
     return str(resp)
